@@ -2,10 +2,11 @@
 Uses external controlsfx library
 
 Can be download from Maven: org.controlsfx.control.GridView
-In order to run it VM must have set at least this args:
+
+In order to run project the following arg must be set on the VM:
 *  --add-opens=javafx.controls/javafx.scene.control.skin=ALL-UNNAMED
 
-However i would recomend send all of thoose:
+However I would recomend set all of thoose, in case of future development:
 *  --add-exports=javafx.base/com.sun.javafx=ALL-UNNAMED
 *  --add-exports=javafx.base/com.sun.javafx.collections=ALL-UNNAMED
 *  --add-exports=javafx.graphics/com.sun.javafx.css=ALL-UNNAMED
