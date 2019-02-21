@@ -1,5 +1,6 @@
 # PokemonTileMapper
 Uses external controlsfx library
+
 Can be download from Maven: org.controlsfx.control.GridView
 In order to run it VM must have set at least this args:
 *  --add-opens=javafx.controls/javafx.scene.control.skin=ALL-UNNAMED
