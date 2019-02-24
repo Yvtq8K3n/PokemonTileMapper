@@ -14,26 +14,26 @@ import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
-import javafx.geometry.Insets;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
-import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.SplitPane;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseEvent;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.controlsfx.control.GridView;
 import org.controlsfx.control.StatusBar;
-import pokemon.tile.mapper.gui.CustomGridCell;
+import pokemon.tile.mapper.gui.InsivibleGridCell;
+import pokemon.tile.mapper.gui.PalletGridCell;
+import pokemon.tile.mapper.gui.PopOverTooltip;
 
 import java.io.File;
 
@@ -43,29 +43,53 @@ import static pokemon.tile.mapper.model.Model.INSTANCE;
 
 public class MainApplication extends Application {
 
-    final FileChooser fileChooser = new FileChooser();
-    static GridView<java.awt.Color> myGrid;
-    static ImageView generated;
-    static StatusBar statusBar;
+    private final FileChooser fileChooser = new FileChooser();
+    static PopOverTooltip popOver;
+
+    private static ImageView generated;
+    private static StatusBar statusBar;
+
+    private static Label paletteAmmount;
+    static GridView<java.awt.Color> paletteGrid;
+    private static Label invisibleAmmount;
+    static GridView<java.awt.Color> invisibleGrid;
 
     @Override
     public void start(Stage stage) {
 
         File file = fileChooser.showOpenDialog(stage);
-        if (file != null) INSTANCE.setOriginalTile(file);
-
+        if (file != null) INSTANCE.setOriginal(file);
 
         BorderPane layout = new BorderPane();
-        layout.setLeft(leftSide());
+        layout.setLeft(palletDisplay());
         //layout.setCenter(centerSide());
-        layout.setCenter(palletDisplay());
-        layout.setRight(rightSide());
+        layout.setCenter(tabMenu());
+        layout.setRight(toolBar());
         layout.setBottom(bottomSide());
+        layout.setTop(topSide());
 
-        stage.setTitle("Pokemon Tile Mapper");
+        stage.setTitle("Pokemon Tileset Mapper");
         stage.getIcons().add(new Image("pokemon/tile/mapper/resources/icon.png"));
-        stage.setScene(new Scene(layout, 460, 250));
+        stage.setScene(new Scene(layout, 525, 265));
         stage.show();
+    }
+
+
+    /**
+     * Creates topSide it includes a MenuBar and a disabled Toolbar
+     * @return
+     */
+    private Node topSide() {
+        //Generate Menu
+        Menu settings = new Menu("Settings");
+        settings.setOnAction(SettingsController.openSettings);
+        MenuBar menuBar = new MenuBar();
+        menuBar.getMenus().addAll(settings);
+
+        VBox vBox = new VBox();
+        vBox.getChildren().addAll(menuBar);
+
+        return vBox;
     }
 
     private Node bottomSide() {
@@ -74,67 +98,50 @@ public class MainApplication extends Application {
     }
 
     private Node leftSide(){
-        ImageView original = new ImageView(SwingFXUtils.toFXImage(INSTANCE.getOriginalTile(), null));
+        ImageView original = new ImageView(SwingFXUtils.toFXImage(INSTANCE.getOriginal(), null));
 
-        VBox vBox = new VBox(new Label("Original Tile:"), original);
-        vBox.setAlignment(Pos.CENTER);
-        return new Group(vBox);
+        VBox vBox = new VBox(new Label("Original Tileset:"), original);
+        vBox.setAlignment(Pos.TOP_CENTER);
+
+        return vBox;
     }
 
     private Node rightSide(){
+        //Creates ImageView
         generated = new ImageView();
-        generated.setImage(SwingFXUtils.toFXImage(INSTANCE.getTile().getGeneratedImage(), null));
-        VBox vBox = new VBox(new Label("Generated Tile:"), generated);
-        vBox.setAlignment(Pos.CENTER);
-        return new Group(vBox);
-    }
+        generated.setImage(SwingFXUtils.toFXImage(INSTANCE.getTileset().getScaledGeneratedImage(), null));
+        VBox vBox = new VBox(new Label("Generated Tileset:"), generated);
+        vBox.setAlignment(Pos.TOP_CENTER);
 
-    /**
-     * Display all the colors contained in the generated image
-     * Initialy creates 25x25 blocks and when the Parent Pane is created binds to its dimentions
-     *
-     * @return VBox vbox
-     */
-    @Deprecated//Likely gonna remove, but i SHOULD KEEP THE LABEL!
-    private Pane centerSide(){
-        int ammountColors = INSTANCE.getTile().getColors().size();
-
-        Label label = new Label("Total of colors "+ammountColors+"/16");
-        if (ammountColors>16) label.setTextFill(Color.RED);
-        else label.setTextFill(Color.BLACK);
-
-        VBox vBox = new VBox(label, label);
-        vBox.setPrefSize(50, 50);
-
-        GridPane gridPane = new GridPane();
-        gridPane.setAlignment(Pos.CENTER);
-        gridPane.setStyle("-fx-border-color: black;");
-        gridPane.setPadding(new Insets(0, 0, 0, 5));
-        gridPane.setVgap(8); gridPane.setHgap(8);
-
-
-        int position=0;
-        for (java.awt.Color color: INSTANCE.getTile().getColors()) {
-            Rectangle rectangle = new Rectangle(25, 25);
-            rectangle.widthProperty().bind(gridPane.widthProperty().divide(8).subtract(1));
-            rectangle.setFill(FxUtils.convertColor(color));
-
-            rectangle.addEventHandler(MouseEvent.MOUSE_CLICKED , ApplicationController.colorClicked);
-            rectangle.addEventHandler(MouseEvent.MOUSE_ENTERED , ApplicationController.hideColor);
-
-            gridPane.add(rectangle, position % 8, position / 8);
-            GridPane.setMargin(rectangle, new Insets(-5, -5, -5, -5));
-            position++;
-        }
-
-        ScrollPane scrollPane = new ScrollPane(gridPane);
-        scrollPane.setFitToWidth(true);
-        scrollPane.setStyle("-fx-focus-color: transparent;");
-
-        vBox.getChildren().add(scrollPane);
-        vBox.setAlignment(Pos.CENTER_LEFT);
         return vBox;
     }
+
+    private Node toolBar(){
+        //Generate ToolBar
+        ToolBar toolBar = new ToolBar();
+        toolBar.setOrientation(Orientation.VERTICAL);
+        Button copyGeneratedBtn = new Button();
+        copyGeneratedBtn.setGraphic(new ImageView("pokemon/tile/mapper/resources/copy-icon.png"));
+        copyGeneratedBtn.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                final Clipboard clipboard = Clipboard.getSystemClipboard();
+                final ClipboardContent content = new ClipboardContent();
+                content.putImage(SwingFXUtils.toFXImage(INSTANCE.getTileset().getGeneratedImage(), null));
+                clipboard.setContent(content);
+
+            }
+        });
+
+
+        Button convertToTileBtn = new Button();
+        convertToTileBtn.setGraphic(new ImageView("pokemon/tile/mapper/resources/transform.png"));
+        toolBar.getItems().addAll(copyGeneratedBtn, convertToTileBtn);
+
+        return toolBar;
+    }
+
+
 
     /**Creates a GridCell, this will draw the all the colors the image has.
      * Uses external controlsfx library
@@ -143,13 +150,61 @@ public class MainApplication extends Application {
      * @return
      */
     private Node palletDisplay(){
-        final ObservableList list = FXCollections.observableArrayList(INSTANCE.getTile().getColors());
-        myGrid = new GridView<>(list);
-        myGrid.setVerticalCellSpacing(0); myGrid.setHorizontalCellSpacing(0);
-        myGrid.cellHeightProperty().set(25); myGrid.cellWidthProperty().set(25);
-        myGrid.setCellFactory(gridView -> { return new CustomGridCell(); });
+        //Creates paletteAmmount label
+        paletteAmmount = new Label();
+        int paletteSize = INSTANCE.getTileset().getPaletteColors().size();
+        paletteAmmount.setText(String.format("Pallet: %d/16", paletteSize));
+        if (paletteSize > 16) paletteAmmount.setTextFill(Color.RED);
 
-        return myGrid;
+        //Creates paletteGrid
+        final ObservableList pallet = FXCollections.observableArrayList(INSTANCE.getTileset().getPaletteColors());
+        paletteGrid = new GridView<>(pallet);
+        paletteGrid.setVerticalCellSpacing(0); paletteGrid.setHorizontalCellSpacing(0);
+        paletteGrid.cellHeightProperty().set(25); paletteGrid.cellWidthProperty().set(25);
+        paletteGrid.setCellFactory(gridView -> { return new PalletGridCell(); });
+        paletteGrid.setPrefSize(225,100);
+
+        //Creates invisibleAmmount label
+        invisibleAmmount = new Label();
+        int invisibleSize = INSTANCE.getTileset().getInvisibleColors().size();
+        invisibleAmmount.setText(String.format("Invisible: %d", invisibleSize));
+
+        //Creates insisibleGrid
+        final ObservableList removedPallet = FXCollections.observableArrayList(INSTANCE.getTileset().getInvisibleColors());
+        invisibleGrid = new GridView<>(removedPallet);
+        invisibleGrid.setVerticalCellSpacing(0); invisibleGrid.setHorizontalCellSpacing(0);
+        invisibleGrid.cellHeightProperty().set(25); invisibleGrid.cellWidthProperty().set(25);
+        invisibleGrid.setCellFactory(gridView -> { return new InsivibleGridCell(); });
+
+        //Creates Slider
+        Slider slider = new Slider();
+        slider.setMin(1);
+        slider.setMax(3);
+        slider.setValue(INSTANCE.getScale());
+        slider.setShowTickLabels(true);
+        slider.setShowTickMarks(true);
+        slider.setMajorTickUnit(1);
+        slider.setMinorTickCount(5);
+        slider.setBlockIncrement(1);
+        slider.valueProperty().addListener((observable, oldValue, newValue) -> {
+            Double myDouble = Double.valueOf((Double) newValue);
+            Integer val = Integer.valueOf(myDouble.intValue()); // the simple way
+            INSTANCE.setScale(val);
+            MainApplication.generated.setImage(SwingFXUtils.toFXImage(INSTANCE.getTileset().getScaledGeneratedImage(), null));
+        });
+
+        VBox vBox = new VBox();
+        vBox.getChildren().addAll(
+                paletteAmmount,
+                paletteGrid,
+                invisibleAmmount,
+                invisibleGrid,
+                new Label("Resize:"),
+                slider
+        );
+        vBox.setAlignment(Pos.TOP_LEFT);
+
+        return vBox;
     }
 
     //There is a better tooltip in controlersfx library
@@ -169,6 +224,37 @@ public class MainApplication extends Application {
         bubble.setEffect(new DropShadow(10, 5, 5, Color.MIDNIGHTBLUE));
         bubble.setStyle("-fx-border-color: red");
         return bubble;*/
+    }
+
+
+    private Node tabMenu(){
+        Tab tab = new Tab();
+        tab.setText("new tab");
+        tab.setContent(new HBox(leftSide(), rightSide()));
+        tab.setClosable(false);
+
+        TabPane tabPane = new TabPane();
+        tabPane.getTabs().add(tab);
+
+        return tabPane;
+    }
+
+    /**
+     * A method that actualizes the view labels after an action occur
+     */
+    public static void updateView(String statusOperation){
+        int paletteSize = INSTANCE.getTileset().getPaletteColors().size();
+        paletteAmmount.setText(String.format("Pallet: %d/16", paletteSize));
+        if (INSTANCE.getTileset().getPaletteColors().size() > 16) paletteAmmount.setTextFill(Color.RED);
+        else paletteAmmount.setTextFill(Color.BLACK);
+
+        MainApplication.statusBar.setText(statusOperation);
+        MainApplication.generated.setImage(SwingFXUtils.toFXImage(INSTANCE.getTileset().getScaledGeneratedImage(), null));
+
+
+        //Creates invisibleAmmount label
+        int invisibleSize = INSTANCE.getTileset().getInvisibleColors().size();
+        invisibleAmmount.setText(String.format("Invisible: %d", invisibleSize));
     }
 
     public static void main(String[] args) {

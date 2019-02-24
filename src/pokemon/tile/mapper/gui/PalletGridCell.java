@@ -15,14 +15,16 @@ import pokemon.tile.mapper.ApplicationController;
 
 /**
  * Creates my own CustomGridCell in order to
- * simplify and provide the required funcionatly
+ * simplify and provide the required functionality
  * (kiss) keep it simple stupid:3
  */
 
-public class CustomGridCell extends AWTColorGridCell {
-    public CustomGridCell() {
+public class PalletGridCell extends AWTColorDoubleGridCell {
+
+    public PalletGridCell() {
         super();
-        addEventHandler(MouseEvent.MOUSE_CLICKED , ApplicationController.colorClicked);
+        addEventHandler(MouseEvent.MOUSE_CLICKED , ApplicationController.paletteGridMouseClick);
         addEventHandler(MouseEvent.MOUSE_ENTERED , ApplicationController.hideColor);
     }
+
 }

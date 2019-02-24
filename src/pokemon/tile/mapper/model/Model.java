@@ -18,34 +18,29 @@ import java.io.IOException;
 
 public enum Model {
     INSTANCE;
-    private BufferedImage originalTile;
-    private Tile tile;
-    private BufferedImage bufferedImage;
+    private BufferedImage original;
+    private Tileset tile;
+    private BufferedImage generated;
     private Color invisible = Color.YELLOW;
-    public Tile getTile() {
-        return tile;
-    }
-    public void setTile(Tile tile) {
-        this.tile = tile;
-    }
+    private int scale = 1;
 
-    public BufferedImage getOriginalTile() {
-        return originalTile;
+    public BufferedImage getOriginal() {
+        return original;
     }
-    public void setOriginalTile(File file) {
+    public void setOriginal(File file) {
         try {
-            this.originalTile = ImageIO.read(file); //if (BufferedImage.TYPE_3BYTE_BGR)
-            tile = new Tile(this.originalTile);
+            this.original = ImageIO.read(file); //if (BufferedImage.TYPE_3BYTE_BGR)
+            tile = new Tileset(this.original);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public BufferedImage getBufferedImage() {
-        return bufferedImage;
+    public BufferedImage getGenerated() {
+        return generated;
     }
-    public void setBufferedImage(BufferedImage bufferedImage) {
-        this.bufferedImage = bufferedImage;
+    public void setGenerated(BufferedImage generated) {
+        this.generated = generated;
     }
 
     public Color getInvisible() {
@@ -53,5 +48,20 @@ public enum Model {
     }
     public void setInvisible(Color invisible) {
         this.invisible = invisible;
+    }
+
+    public Tileset getTileset() {
+        return tile;
+    }
+    public void setTile(Tileset tile) {
+        this.tile = tile;
+    }
+
+    public int getScale() {
+        return scale;
+    }
+
+    public void setScale(int scale) {
+        this.scale = scale;
     }
 }

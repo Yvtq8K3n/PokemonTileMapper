@@ -13,7 +13,7 @@ package pokemon.tile.mapper.gui;
 import javafx.scene.Node;
 import javafx.scene.shape.Rectangle;
 import org.controlsfx.control.GridCell;
-import pokemon.tile.mapper.FxUtils;
+import pokemon.tile.mapper.utils.FxUtils;
 
 import java.awt.*;
 
@@ -22,10 +22,10 @@ import java.awt.*;
  * By doing this, we need to parse between Awt.Color and javafx.Color
  */
 public class AWTColorGridCell extends GridCell<Color> {
-    private javafx.scene.shape.Rectangle colorRect;
+    private Rectangle colorRect;
     private static final boolean debug = false;
 
-    public AWTColorGridCell() {
+    AWTColorGridCell() {
         this.getStyleClass().add("color-grid-cell");
         this.colorRect = new Rectangle();
         this.colorRect.setStroke(javafx.scene.paint.Color.BLACK);
@@ -37,9 +37,10 @@ public class AWTColorGridCell extends GridCell<Color> {
     protected void updateItem(Color item, boolean empty) {
         super.updateItem(item, empty);
         if (empty) {
-            this.setGraphic((Node) null);
+            this.setGraphic(null);
         } else {
             this.colorRect.setFill(FxUtils.convertColor(item));
+
             this.setGraphic(this.colorRect);
         }
 

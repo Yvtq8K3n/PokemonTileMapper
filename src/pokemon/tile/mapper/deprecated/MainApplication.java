@@ -14,14 +14,14 @@ import static pokemon.tile.mapper.model.Model.INSTANCE;
 public class MainApplication {
 
     private JPanel jPanel1;
-    final JFileChooser fileChooser = new JFileChooser();
+    private final JFileChooser fileChooser = new JFileChooser();
     private JButton tileUpload;
 
 
     private final JButton crPopupButton = new JButton("OLA");
 
 
-    public MainApplication() {
+    private MainApplication() {
         tileUpload.addActionListener(new ImageUpload());
     }
 
@@ -37,7 +37,7 @@ public class MainApplication {
                 File file = fileChooser.getSelectedFile();
 
                 try{
-                    INSTANCE.setOriginalTile(file);
+                    INSTANCE.setOriginal(file);
                     displayOriginalTile();
                 }catch (Exception ex){
                     System.out.println("Unable to convert file into a bitmap image");
@@ -50,8 +50,8 @@ public class MainApplication {
 
 
     //Temporary
-    public void displayOriginalTile(){
-        BufferedImage img = INSTANCE.getOriginalTile();
+    private void displayOriginalTile(){
+        BufferedImage img = INSTANCE.getOriginal();
         ImageIcon icon=new ImageIcon(img);
         JFrame frame=new JFrame();
         frame.setLayout(new FlowLayout());
@@ -86,21 +86,19 @@ public class MainApplication {
             UIManager.put("Popup.background", Color.YELLOW);
             UIManager.put("Dialog.background", Color.ORANGE);
             UIManager.put("Frame.background", Color.GREEN);
-        } catch (Exception e) { }
+        } catch (Exception ignored) { }
 
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                JFrame frame = new JFrame("MainApplication");
-                frame.setTitle("Pokemon Tile Mapper");
-                frame.setContentPane(new MainApplication().jPanel1);
-                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                frame.pack();
-                frame.setVisible(true);
+        SwingUtilities.invokeLater(() -> {
+            JFrame frame = new JFrame("MainApplication");
+            frame.setTitle("Pokemon Tileset Mapper");
+            frame.setContentPane(new MainApplication().jPanel1);
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.pack();
+            frame.setVisible(true);
 
-                //Sets window Icon
-                //URL url = ClassLoader.getSystemResource("creator/tile/pokemon/resources/icon.png");
-                //frame.setIconImage(Toolkit.getDefaultToolkit().createImage(url));
-            }
+            //Sets window Icon
+            //URL url = ClassLoader.getSystemResource("creator/tile/pokemon/resources/icon.png");
+            //frame.setIconImage(Toolkit.getDefaultToolkit().createImage(url));
         });
     }
 }
